@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Synth</title>
+		<script src="./scripts/Tone.js"></script>
+<!-- 		<script src="./test.js"></script>
+ -->
+		<!-- BOOTSTRAP -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+
+	</head>
+	<body>
+		<div class = "container">
+			<div class = "row">
+				<div class = "col">
+					<h1 class="text-center"><b>VISUALIZE TO SYNTHESIZE</b></h1>
+				</div>
+			</div>
+			<div class = "row">
+				<div class = "col text-center">
+					<div class="dropdown">
+					  <a class="btn btn-danger dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					    WAVE TYPE
+					  </a>
+
+					  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+					    <a class="dropdown-item" onclick = "updateType(&quot;sine&quot;)">SINE</a>
+					    <a class="dropdown-item" onclick = "updateType(&quot;triangle&quot;)">TRIANGLE</a>
+					    <a class="dropdown-item" onclick = "updateType(&quot;sawtooth&quot;)">SAWTOOTH</a>
+					    <a class="dropdown-item" onclick = "updateType(&quot;square&quot;)">SQUARE</a>
+					  </div>
+					</div>
+				</div>
+				<div class = "col text-center">
+						<div class="dropdown">
+						  <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						    EFFECT ONE
+						  </a>
+
+						  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+						    <a class="dropdown-item" onclick = "updateEffect(0, Tone.BitCrusher)">BIT CRUSHER</a>
+						    <a class="dropdown-item" onclick = "updateEffect(0, Tone.Reverb)">REVERB</a>
+						    <a class="dropdown-item" onclick = "updateEffect(0, Tone.Distortion)">DISTORTION</a>
+						    <a class="dropdown-item" onclick = "updateEffect(0, Tone.AutoPanner)">PAN</a>
+						    <a class="dropdown-item" onclick = "updateEffect(0, Tone.Vibrato)">VIBRATO</a>
+						  </div>
+						</div>
+				</div>
+				<div class = "col text-center">
+					<div class="dropdown">
+					  <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					    EFFECT TWO
+					  </a>
+
+					  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+					    <a class="dropdown-item" onclick = "updateEffect(1, Tone.BitCrusher,synth)">BIT CRUSHER</a>
+					    <a class="dropdown-item" onclick = "updateEffect(1, Tone.Reverb)">REVERB</a>
+					    <a class="dropdown-item" onclick = "updateEffect(1, Tone.Distortion)">DISTORTION</a>
+					    <a class="dropdown-item" onclick = "updateEffect(1, Tone.AutoPanner)">PAN</a>
+					    <a class="dropdown-item" onclick = "updateEffect(1, Tone.Vibrato)">VIBRATO</a>
+					  </div>
+					</div>
+				</div>
+			</div>
+			<div class = "row text-center" id = "Content">
+				<canvas style= "height: 250px; width: 100%;" id = "waveform"></canvas>
+			</div>
+		</div>
+		<script>
+			var effectArray = [];
+			var synth = new Tone.Synth().toMaster();
+			var point;
+			var effectToAffect = {
+				"Tone.BitCrusher": 8,
+				"Tone.Reverb": 10,
+				"Tone.Distortion": 10,
+				"Tone.AutoPanner": 10,
+				"Tone.Vibrato": 20,
+			};
+
+			synth.triggerAttackRelease("C4", "8m");
+
+
+			function updateEffect(n, effectType) {
+				if (n) {
+					effectArray[1] = effectType;
+				} else {
+					effectArray[0] = effectType;
+				}
+				synth.triggerRelease();
+				synth.disconnect();
+				synth = updateSynth(point);
+				synth.triggerAttackRelease("C4", "8m");
+			}
+
+			function updateSynth(point) {
+				synth.disconnect();
+				tempPoint = updatePoint(point);
+				if (effectArray[0] != null) {
+					var effectOne = new effectArray[0](tempPoint[0]).toMaster();
+					synth.connect(effectOne);
+				}
+				if (effectArray[1] != null) {
+					var effectTwo = new effectArray[1](tempPoint[1]).toMaster();
+					synth.connect(effectTwo);
+				}
+				return synth;
+			}
+
+			function updatePoint(p, type) {
+				return(p[0] * effectToAffect[String(type)], p[1] * effectToAffect[String(type)]);
+			}
+
+			function updateType(newType) {
+				//NOT WORKING
+			}
+
+			document.addEventListener('keypress', (event) => {
+			  const keyName = event.key.toLowerCase();
+			  switch(keyName) {
+			      case 'a':
+			          synth.triggerAttackRelease("C4", "2n");
+			          break;
+			      case 's':
+			          synth.triggerAttackRelease("D4", "2n");
+			          break;
+			      case 'd':
+			          synth.triggerAttackRelease("E4", "2n");
+			          break;
+			      case 'f':
+			          synth.triggerAttackRelease("F4", "2n");
+			          break;
+			      case 'g':
+			          synth.triggerAttackRelease("G4", "2n");
+			          break;
+			      case 'h':
+			          synth.triggerAttackRelease("A4", "2n");
+			          break;
+			      case 'j':
+			          synth.triggerAttackRelease("B4", "2n");
+			          break;
+			      case 'k':
+			          synth.triggerAttackRelease("C5", "2n");
+			          break;
+			      case 'l':
+			          synth.triggerAttackRelease("D5", "2n");
+			          break;
+			      case ';':
+			          synth.triggerAttackRelease("E5", "2n");
+			          break;
+			      default:
+			          break;
+			  }
+
+			  console.log(keyName);
+			});
+
+			window.setInterval(loadDoc, 1000);
+
+			function loadDoc(){
+				var xhttp = new XMLHttpRequest();
+
+				xhttp.onreadystatechange=function(){
+			    if(xhttp.readyState==4){
+			        if (xhttp.status==200){
+			                var responseText = xhttp.responseText;
+			                //console.log(responseText)
+			               	point = responseText.split('-');
+			               	point[0] = parseFloat(point[0]) * 10
+			               	point[1] = parseFloat(point[1]) * 10
+			               	console.log(point)
+			               	synth = updateSynth(point);
+			               	synth.triggerAttackRelease("C4", "8m");
+			            }
+			        }
+			    }
+				xhttp.open("GET", "http://127.0.0.1:8000/data", true);
+				xhttp.send();
+			}
+
+		</script>
+	</body>
+</html>
